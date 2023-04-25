@@ -3,6 +3,13 @@ const router = express.Router();
 const { Order } = require('../models/index');
 const { Product } = require('../models/index');
 
+const setCors = (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+};
+
+router.use(setCors);
+
 // Get all orders
 router.get('/orders', async (req, res) => {
   try {
@@ -75,9 +82,47 @@ router.post('/orders/:id/products', async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     const productIds = req.body.productIds;
-    order.products.push(...productIds);
+    const products = await Product.find({ _id: { $in: productIds } });
+    order.products.push(...products);
     await order.save();
     res.json({ message: 'Products added to order' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/orders/:id/products', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('products');
+    res.json(order.products);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+// Delete order by ID
+router.delete('/orders/:id', async (req, res) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    res.json({ message: 'Order deleted' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete product by ID
+router.delete('/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json({ message: 'Product deleted' });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: 'Server error' });

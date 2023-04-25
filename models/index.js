@@ -10,7 +10,7 @@ const productSchema = new Schema({
   specification: { type: String, required: true },
   guarantee: { type: Object, required: true },
   price: { type: Array, required: true },
-  order: { type: Schema.Types.ObjectId, ref: 'Order' }, // reference to the Order collection
+  order: { type: Schema.Types.ObjectId, ref: 'Order' },
   date: { type: String, required: true },
 });
 
@@ -18,7 +18,10 @@ const orderSchema = new Schema({
   title: { type: String, required: true },
   date: { type: String, required: true },
   description: { type: String, required: true },
-  products: [{ type: Schema.Types.ObjectId, ref: 'Product' }], // array of references to the Product collection
+  products: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
+    default: [],
+  },
 });
 
 const Order = mongoose.model('Order', orderSchema);
